@@ -1,7 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 function Counter() {
   const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    console.log("Component loaded or count changed:", count);
+  }, [count]);
 
   return (
     <div style={{ textAlign: "center", margin: "20px" }}>
