@@ -1,13 +1,15 @@
-import UserList from "../components/UserList";
 import FoodMenu from "../components/FoodMenu";
+import BackendFoodMenu from "../components/BackendFoodMenu";
+import OrderTest from "../components/OrderTest";
 
 function Home() {
   return (
     <div>
       <h1>Welcome to QuickBite</h1>
 
-      <UserList />
       <FoodMenu />
+      <BackendFoodMenu />
+      <OrderTest />
     </div>
   );
 }
