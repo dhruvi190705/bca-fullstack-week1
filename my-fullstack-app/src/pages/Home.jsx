@@ -1,15 +1,23 @@
 import FoodMenu from "../components/FoodMenu";
 import BackendFoodMenu from "../components/BackendFoodMenu";
-import OrderTest from "../components/OrderTest";
+import Orders from "../components/Orders";
 
 function Home() {
   return (
     <div>
-      <h1>Welcome to QuickBite</h1>
+      {/* QuickBite Header */}
+      <h1 style={{ textAlign: "center" }}>
+        🍔 Welcome to QuickBite
+      </h1>
 
+      {/* Food Ordering */}
       <FoodMenu />
+
+      {/* Food From MongoDB */}
       <BackendFoodMenu />
-      <OrderTest />
+
+      {/* Customer Orders From MongoDB */}
+      <Orders />
     </div>
   );
 }

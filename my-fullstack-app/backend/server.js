@@ -5,6 +5,7 @@ const express = require("express");
 const cors = require("cors");
 const connectDB = require("./db");
 const Food = require("./models/Food");
+const Order = require("./models/Order");
 
 const app = express();
 
@@ -334,26 +335,82 @@ app.delete("/api/foods/:id", async (req, res) => {
 
 
 // ==========================================
-// ORDER API
+// ORDER API - SAVE ORDER TO MONGODB
 // ==========================================
 
-app.post("/api/orders", (req, res) => {
-  const order = req.body;
+app.post("/api/orders", async (req, res) => {
+  try {
+    const {
+      customerName,
+      mobile,
+      items,
+      total,
+    } = req.body;
 
-  if (
-    !order ||
-    !Array.isArray(order.items) ||
-    order.items.length === 0
-  ) {
-    return res.status(400).json({
-      message: "Please add food items to your order.",
+    // Validate order
+    if (
+      !customerName ||
+      !mobile ||
+      !Array.isArray(items) ||
+      items.length === 0 ||
+      total === undefined
+    ) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Customer name, mobile, items and total are required.",
+      });
+    }
+
+    // Create new order
+    const order = new Order({
+      customerName: customerName,
+      mobile: mobile,
+      items: items,
+      total: total,
+    });
+
+    // Save order to MongoDB
+    const savedOrder = await order.save();
+
+    // Send response
+    res.status(201).json({
+      success: true,
+      message: "Order placed successfully!",
+      order: savedOrder,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error saving order",
+      error: error.message,
     });
   }
+});
 
-  res.status(201).json({
-    message: "Order received successfully!",
-    order: order,
-  });
+
+// ==========================================
+// GET ALL ORDERS FROM MONGODB
+// ==========================================
+
+app.get("/api/orders", async (req, res) => {
+  try {
+    const orders = await Order.find().sort({
+      createdAt: -1,
+    });
+
+    res.status(200).json({
+      success: true,
+      count: orders.length,
+      orders: orders,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching orders",
+      error: error.message,
+    });
+  }
 });
 
 
