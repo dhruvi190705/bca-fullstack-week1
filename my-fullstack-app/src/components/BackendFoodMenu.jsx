@@ -8,7 +8,9 @@ function BackendFoodMenu() {
   useEffect(() => {
     const fetchFoods = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/foods");
+        const response = await fetch(
+          "http://localhost:5000/api/rest/foods"
+        );
 
         if (!response.ok) {
           throw new Error("Failed to fetch food menu");
@@ -16,7 +18,7 @@ function BackendFoodMenu() {
 
         const data = await response.json();
 
-        setFoods(data);
+        setFoods(data.foods);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -37,25 +39,29 @@ function BackendFoodMenu() {
 
   return (
     <div style={{ marginTop: "30px" }}>
-      <h2>Food Menu From Express Backend</h2>
+      <h2>Food Menu From MongoDB</h2>
 
-      {foods.map((food) => (
-        <div
-          key={food.id}
-          style={{
-            border: "1px solid #ddd",
-            padding: "15px",
-            margin: "10px 0",
-            borderRadius: "8px",
-          }}
-        >
-          <h3>{food.name}</h3>
+      {foods.length === 0 ? (
+        <p>No food available.</p>
+      ) : (
+        foods.map((food) => (
+          <div
+            key={food._id}
+            style={{
+              border: "1px solid #ddd",
+              padding: "15px",
+              margin: "10px 0",
+              borderRadius: "8px",
+            }}
+          >
+            <h3>{food.name}</h3>
 
-          <p>Category: {food.category}</p>
+            <p>Category: {food.category}</p>
 
-          <p>Price: ₹{food.price}</p>
-        </div>
-      ))}
+            <p>Price: ₹{food.price}</p>
+          </div>
+        ))
+      )}
     </div>
   );
 }
