@@ -1,15 +1,20 @@
-const cors = require("cors");
-// Week 8 - Express.js Backend
+// Week 9 - MongoDB and Mongoose
 // QuickBite Online Food Ordering System
 
 const express = require("express");
+const cors = require("cors");
+const connectDB = require("./db");
+const Food = require("./models/Food");
 
 const app = express();
-app.use(cors());
 
 const PORT = 5000;
 
-// Middleware to read JSON data
+// Connect MongoDB
+connectDB();
+
+// Middleware
+app.use(cors());
 app.use(express.json());
 
 // Home Route
@@ -17,7 +22,7 @@ app.get("/", (req, res) => {
   res.send("Welcome to QuickBite Backend Server!");
 });
 
-// Food Menu Data
+// Existing Food Menu Data
 const foods = [
   {
     id: 1,
@@ -51,12 +56,95 @@ const foods = [
   },
 ];
 
-// GET Route - Display Food Menu
+// GET - Display existing food menu
 app.get("/api/foods", (req, res) => {
   res.json(foods);
 });
 
-// POST Route - Place a Food Order
+// POST - Add Food to MongoDB
+app.post("/api/foods", async (req, res) => {
+  try {
+    const food = new Food(req.body);
+
+    const savedFood = await food.save();
+
+    res.status(201).json({
+      message: "Food added successfully!",
+      food: savedFood,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error adding food",
+      error: error.message,
+    });
+  }
+});
+
+// GET - Get Foods from MongoDB
+app.get("/api/foods/db", async (req, res) => {
+  try {
+    const foodsFromDB = await Food.find();
+
+    res.json(foodsFromDB);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching food data",
+      error: error.message,
+    });
+  }
+});
+
+// PUT - Update Food in MongoDB
+app.put("/api/foods/:id", async (req, res) => {
+  try {
+    const updatedFood = await Food.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+
+    if (!updatedFood) {
+      return res.status(404).json({
+        message: "Food not found",
+      });
+    }
+
+    res.json({
+      message: "Food updated successfully!",
+      food: updatedFood,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error updating food",
+      error: error.message,
+    });
+  }
+});
+
+// DELETE - Delete Food from MongoDB
+app.delete("/api/foods/:id", async (req, res) => {
+  try {
+    const deletedFood = await Food.findByIdAndDelete(req.params.id);
+
+    if (!deletedFood) {
+      return res.status(404).json({
+        message: "Food not found",
+      });
+    }
+
+    res.json({
+      message: "Food deleted successfully!",
+      food: deletedFood,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error deleting food",
+      error: error.message,
+    });
+  }
+});
+
+// POST - Place a Food Order
 app.post("/api/orders", (req, res) => {
   const order = req.body;
 
