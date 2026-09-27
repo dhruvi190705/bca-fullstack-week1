@@ -1,5 +1,5 @@
-// Week 9 - MongoDB and Mongoose
-// QuickBite Online Food Ordering System
+// Week 10 - REST API Development
+// QuickBite - Online Food Ordering System
 
 const express = require("express");
 const cors = require("cors");
@@ -17,12 +17,20 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
-// Home Route
+
+// ==========================================
+// HOME ROUTE
+// ==========================================
+
 app.get("/", (req, res) => {
-  res.send("Welcome to QuickBite Backend Server!");
+  res.send("Welcome to QuickBite REST API Server!");
 });
 
-// Existing Food Menu Data
+
+// ==========================================
+// EXISTING FOOD MENU
+// ==========================================
+
 const foods = [
   {
     id: 1,
@@ -56,12 +64,177 @@ const foods = [
   },
 ];
 
-// GET - Display existing food menu
+
+// ==========================================
+// GET - EXISTING FOOD MENU
+// ==========================================
+
 app.get("/api/foods", (req, res) => {
-  res.json(foods);
+  res.status(200).json(foods);
 });
 
-// POST - Add Food to MongoDB
+
+// ==========================================
+// REST API - GET ALL FOODS FROM MONGODB
+// ==========================================
+
+app.get("/api/rest/foods", async (req, res) => {
+  try {
+    const foodsFromDB = await Food.find();
+
+    res.status(200).json({
+      success: true,
+      count: foodsFromDB.length,
+      foods: foodsFromDB,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching foods",
+      error: error.message,
+    });
+  }
+});
+
+
+// ==========================================
+// REST API - GET FOOD BY ID
+// ==========================================
+
+app.get("/api/rest/foods/:id", async (req, res) => {
+  try {
+    const food = await Food.findById(req.params.id);
+
+    if (!food) {
+      return res.status(404).json({
+        success: false,
+        message: "Food not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      food: food,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching food",
+      error: error.message,
+    });
+  }
+});
+
+
+// ==========================================
+// REST API - POST / CREATE FOOD
+// ==========================================
+
+app.post("/api/rest/foods", async (req, res) => {
+  try {
+    const { name, price, category } = req.body;
+
+    if (!name || price === undefined || !category) {
+      return res.status(400).json({
+        success: false,
+        message: "Name, price and category are required",
+      });
+    }
+
+    const food = new Food({
+      name: name,
+      price: price,
+      category: category,
+    });
+
+    const savedFood = await food.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Food added successfully!",
+      food: savedFood,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error adding food",
+      error: error.message,
+    });
+  }
+});
+
+
+// ==========================================
+// REST API - PUT / UPDATE FOOD
+// ==========================================
+
+app.put("/api/rest/foods/:id", async (req, res) => {
+  try {
+    const updatedFood = await Food.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
+
+    if (!updatedFood) {
+      return res.status(404).json({
+        success: false,
+        message: "Food not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Food updated successfully!",
+      food: updatedFood,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error updating food",
+      error: error.message,
+    });
+  }
+});
+
+
+// ==========================================
+// REST API - DELETE FOOD
+// ==========================================
+
+app.delete("/api/rest/foods/:id", async (req, res) => {
+  try {
+    const deletedFood = await Food.findByIdAndDelete(req.params.id);
+
+    if (!deletedFood) {
+      return res.status(404).json({
+        success: false,
+        message: "Food not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Food deleted successfully!",
+      food: deletedFood,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error deleting food",
+      error: error.message,
+    });
+  }
+});
+
+
+// ==========================================
+// OLD POST - ADD FOOD
+// ==========================================
+
 app.post("/api/foods", async (req, res) => {
   try {
     const food = new Food(req.body);
@@ -80,12 +253,16 @@ app.post("/api/foods", async (req, res) => {
   }
 });
 
-// GET - Get Foods from MongoDB
+
+// ==========================================
+// OLD GET - MONGODB FOODS
+// ==========================================
+
 app.get("/api/foods/db", async (req, res) => {
   try {
     const foodsFromDB = await Food.find();
 
-    res.json(foodsFromDB);
+    res.status(200).json(foodsFromDB);
   } catch (error) {
     res.status(500).json({
       message: "Error fetching food data",
@@ -94,13 +271,20 @@ app.get("/api/foods/db", async (req, res) => {
   }
 });
 
-// PUT - Update Food in MongoDB
+
+// ==========================================
+// OLD PUT - UPDATE FOOD
+// ==========================================
+
 app.put("/api/foods/:id", async (req, res) => {
   try {
     const updatedFood = await Food.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true }
+      {
+        new: true,
+        runValidators: true,
+      }
     );
 
     if (!updatedFood) {
@@ -109,7 +293,7 @@ app.put("/api/foods/:id", async (req, res) => {
       });
     }
 
-    res.json({
+    res.status(200).json({
       message: "Food updated successfully!",
       food: updatedFood,
     });
@@ -121,7 +305,11 @@ app.put("/api/foods/:id", async (req, res) => {
   }
 });
 
-// DELETE - Delete Food from MongoDB
+
+// ==========================================
+// OLD DELETE - DELETE FOOD
+// ==========================================
+
 app.delete("/api/foods/:id", async (req, res) => {
   try {
     const deletedFood = await Food.findByIdAndDelete(req.params.id);
@@ -132,7 +320,7 @@ app.delete("/api/foods/:id", async (req, res) => {
       });
     }
 
-    res.json({
+    res.status(200).json({
       message: "Food deleted successfully!",
       food: deletedFood,
     });
@@ -144,11 +332,19 @@ app.delete("/api/foods/:id", async (req, res) => {
   }
 });
 
-// POST - Place a Food Order
+
+// ==========================================
+// ORDER API
+// ==========================================
+
 app.post("/api/orders", (req, res) => {
   const order = req.body;
 
-  if (!order || !Array.isArray(order.items) || order.items.length === 0) {
+  if (
+    !order ||
+    !Array.isArray(order.items) ||
+    order.items.length === 0
+  ) {
     return res.status(400).json({
       message: "Please add food items to your order.",
     });
@@ -160,7 +356,13 @@ app.post("/api/orders", (req, res) => {
   });
 });
 
-// Start Server
+
+// ==========================================
+// START SERVER
+// ==========================================
+
 app.listen(PORT, () => {
-  console.log(`QuickBite server is running on http://localhost:${PORT}`);
+  console.log(
+    `QuickBite REST API server is running on http://localhost:${PORT}`
+  );
 });
